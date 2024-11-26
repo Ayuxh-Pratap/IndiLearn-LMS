@@ -34,7 +34,7 @@ export default function CourseTable() {
     }
 
     const handleEditCourse = (id) => {
-        console.log(`Edit course with ID: ${id}`)
+        navigate(`/admin/course/${id}`)
     }
 
     const handleDeleteCourse = (id) => {
