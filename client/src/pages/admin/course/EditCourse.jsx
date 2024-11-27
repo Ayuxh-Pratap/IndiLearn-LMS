@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import RichTextEditor from '@/components/RichTextEditor'
+import { useEditCourseMutation, useGetCourseByIdQuery } from '@/features/api/courseApi'
+import { useParams } from 'react-router-dom'
 
 const categories = ["Web Development", "Data Science", "Mobile Development", "Machine Learning", "DevOps", "Design", "Business"]
 const levels = ["Beginner", "Intermediate", "Advanced", "All Levels"]
@@ -29,7 +31,32 @@ export default function EditCourse() {
         courseThumbnail: '',
     })
 
-    const isLoading = false
+    const params = useParams()
+    const courseId = params.courseId
+
+    const { data: courseIdData, isLoading: courseIdIsLoading, isSuccess: courseIdIsSuccess, error: courseIdError } = useGetCourseByIdQuery(courseId)
+
+    const course = courseIdData?.course;
+
+    console.log(course)
+    console.log(course?.category)
+
+    useEffect(() => {
+        if (course) {
+            setInput({
+                courseTitle: course.courseTitle || '',
+                subTitle: course.subTitle || '',
+                description: course.description || '',
+                category: course.category || 'error loading',
+                courseLevel: course.courseLevel || '',
+                coursePrice: course.coursePrice || '',
+            });
+        }
+    }, [course]);
+
+    const [editCourse, { data, isLoading, isSuccess, error }] = useEditCourseMutation()
+
+    console.log(data)
 
     const isPublished = true
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -60,11 +87,44 @@ export default function EditCourse() {
         }
     }
 
-    const updateCourseHandler = () => {
-        // TODO: Update course
-        console.log(input)
-        toast.success("Course updated successfully.")
-    }
+    const updateCourseHandler = async () => {
+        if (!courseId) {
+            toast.error("Invalid Course ID.");
+            return;
+        }
+
+        // if (!input.courseTitle || !input.category || !input.courseLevel || !input.coursePrice) {
+        //     toast.error("Please fill in all required fields.");
+        //     return;
+        // }
+
+        const formData = new FormData();
+        formData.append('courseTitle', input.courseTitle);
+        formData.append('subTitle', input.subTitle);
+        formData.append('description', input.description);
+        formData.append('category', input.category);
+        formData.append('courseLevel', input.courseLevel);
+        formData.append('coursePrice', input.coursePrice);
+        // formData.append('courseThumbnail', input.courseThumbnail);
+
+        try {
+            await editCourse({ courseId, formData });
+        } catch (err) {
+            console.error("Error updating course:", err);
+        }
+    };
+
+
+    useEffect(() => {
+        if (isSuccess) {
+            toast.success(data?.message || "Course updated successfully!");
+        }
+        if (error) {
+            console.error('Error response:', error);
+            toast.error(error?.data?.message || "Failed to update course.");
+        }
+    }, [isSuccess, error]);
+
 
     return (
         <div className="container mx-auto">
