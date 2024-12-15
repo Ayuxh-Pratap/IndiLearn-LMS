@@ -34,15 +34,11 @@ export default function EditCourse() {
     const params = useParams()
     const courseId = params.courseId
 
-    const { data: courseIdData, isLoading: courseIdIsLoading, isSuccess: courseIdIsSuccess, error: courseIdError } = useGetCourseByIdQuery(courseId)
-
-    const course = courseIdData?.course;
-
-    console.log(course)
-    console.log(course?.category)
+    const { data: courseIdData, isLoading: courseIdIsLoading, isSuccess: courseIdIsSuccess, error: courseIdError } = useGetCourseByIdQuery(courseId , {refetchOnMountOrArgChange: true})
 
     useEffect(() => {
-        if (course) {
+        if (courseIdData?.course) {
+            const course = courseIdData.course;
             setInput({
                 courseTitle: course.courseTitle || '',
                 subTitle: course.subTitle || '',
@@ -50,9 +46,10 @@ export default function EditCourse() {
                 category: course.category || 'error loading',
                 courseLevel: course.courseLevel || '',
                 coursePrice: course.coursePrice || '',
+                courseThumbnail: '',
             });
         }
-    }, [course]);
+    }, [courseIdData?.course]);
 
     const [editCourse, { data, isLoading, isSuccess, error }] = useEditCourseMutation()
 
@@ -76,16 +73,14 @@ export default function EditCourse() {
     }
 
     const selectThumbnail = (e) => {
-        const file = e.target.files?.[0]
+        const file = e.target.files?.[0];
         if (file) {
-            setInput({ ...input, courseThumbnail: file })
-            const fileReader = new FileReader()
-            fileReader.onload = () => {
-                setPreviewThumbnail(fileReader.result)
-            }
-            fileReader.readAsDataURL(file)
+            setInput({ ...input, courseThumbnail: file });
+            const fileReader = new FileReader();
+            fileReader.onloadend = () => setPreviewThumbnail(fileReader.result);
+            fileReader.readAsDataURL(file);
         }
-    }
+    };
 
     const updateCourseHandler = async () => {
         if (!courseId) {
@@ -93,10 +88,10 @@ export default function EditCourse() {
             return;
         }
 
-        // if (!input.courseTitle || !input.category || !input.courseLevel || !input.coursePrice) {
-        //     toast.error("Please fill in all required fields.");
-        //     return;
-        // }
+        if (!input.courseTitle || !input.category || !input.courseLevel || !input.coursePrice) {
+            toast.error("Please fill in all required fields.");
+            return;
+        }
 
         const formData = new FormData();
         formData.append('courseTitle', input.courseTitle);
@@ -105,7 +100,7 @@ export default function EditCourse() {
         formData.append('category', input.category);
         formData.append('courseLevel', input.courseLevel);
         formData.append('coursePrice', input.coursePrice);
-        // formData.append('courseThumbnail', input.courseThumbnail);
+        formData.append('courseThumbnail', input.courseThumbnail);
 
         try {
             await editCourse({ courseId, formData });
@@ -207,7 +202,7 @@ export default function EditCourse() {
               onChange={}
               className="bg-gray-800 border-gray-700 text-white h-32"
             /> */}
-                        <RichTextEditor input={input} setInput={setInput} />
+                        <RichTextEditor className="border-gray-700 rounded-sm" input={input} setInput={setInput} />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
