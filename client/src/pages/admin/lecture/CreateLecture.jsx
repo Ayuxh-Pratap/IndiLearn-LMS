@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ArrowLeft, Loader2, PlusIcon } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
-import { useCreateLectureMutation } from '@/features/api/courseApi'
+import { useCreateLectureMutation, useGetCourseLectureQuery } from '@/features/api/courseApi'
 import { toast } from 'sonner'
 import { data } from 'autoprefixer'
 import { useNavigate, useParams } from 'react-router-dom'
+import Lecture from './Lecture'
 
 export default function CreateLecture() {
     const [lectureTitle, setLectureTitle] = useState('');
@@ -28,6 +29,15 @@ export default function CreateLecture() {
         },
     ] = useCreateLectureMutation();
 
+    const {
+        isLoading: isGetCourseLectureLoading,
+        isError: isGetCourseLectureError,
+        error: getCourseLectureError,
+        isSuccess: isGetCourseLectureSuccess,
+        data: getCourseLectureData,
+    } = useGetCourseLectureQuery(courseId);
+
+
     const handleCreateLecture = async () => {
         console.log('Button clicked: Creating lecture...');
         await createLecture({ lectureTitle, courseId });
@@ -41,6 +51,8 @@ export default function CreateLecture() {
             toast.error(createLectureError.data.message);
         }
     }, [isCreateLectureSuccess, isCreateLectureError, createLectureError, createLectureData]);
+
+    console.log(getCourseLectureData);
 
     return (
         <div className="container mx-auto">
@@ -92,6 +104,51 @@ export default function CreateLecture() {
                             )}
                         </Button>
                     </div>
+                </div>
+                <div className="space-y-6">
+                    <h2 className="text-3xl mt-12 font-bold text-white mb-4">Lecture Showcase</h2>
+                    <AnimatePresence>
+                        {isGetCourseLectureLoading ? (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="flex items-center justify-center h-64"
+                            >
+                                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                            </motion.div>
+                        ) : isGetCourseLectureSuccess && getCourseLectureData?.lectures?.length > 0 ? (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="grid gap-4"
+                            >
+                                {getCourseLectureData.lectures.map((lecture , index , courseId) => (
+                                    <motion.div
+                                        key={lecture.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -20 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        <Lecture lecture={lecture} courseId={courseId} index={index} />
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="flex flex-col items-center justify-center h-64 bg-gray-800 rounded-lg border border-gray-700 p-8"
+                            >
+                                <BookOpen className="h-16 w-16 text-gray-600 mb-4" />
+                                <h3 className="text-xl font-semibold text-white mb-2">No Lectures Found</h3>
+                                <p className="text-gray-400 text-center">Start by adding your first lecture to this course.</p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </motion.div>
         </div>
