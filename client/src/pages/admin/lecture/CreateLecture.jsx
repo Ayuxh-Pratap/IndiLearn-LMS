@@ -9,27 +9,38 @@ import React, { useEffect, useState } from 'react'
 import { useCreateLectureMutation } from '@/features/api/courseApi'
 import { toast } from 'sonner'
 import { data } from 'autoprefixer'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 export default function CreateLecture() {
+    const [lectureTitle, setLectureTitle] = useState('');
+    const navigate = useNavigate();
+    const params = useParams()
+    const courseId = params.courseId
 
-    const [lectureTitle, setLectureTitle] = useState('')
-    const navigate = useNavigate()
-
-    const [createLecture, { isLoading: isCreateLectureLoading, isError: isCreateLectureError, error: createLectureError, isSuccess: isCreateLectureSuccess, data: createLectureData }] = useCreateLectureMutation()
+    const [
+        createLecture,
+        {
+            isLoading: isCreateLectureLoading,
+            isError: isCreateLectureError,
+            error: createLectureError,
+            isSuccess: isCreateLectureSuccess,
+            data: createLectureData,
+        },
+    ] = useCreateLectureMutation();
 
     const handleCreateLecture = async () => {
-        await createLecture({ lectureTitle, courseId })
-    }
+        console.log('Button clicked: Creating lecture...');
+        await createLecture({ lectureTitle, courseId });
+    };
 
     useEffect(() => {
-        if (isCreateLectureSuccess) {
-            toast.success(data.messsage)
+        if (isCreateLectureSuccess && createLectureData?.message) {
+            toast.success(createLectureData.message);
         }
-        if (createLectureError) {
-            toast.error(createLectureError.data.message)
+        if (isCreateLectureError && createLectureError?.data?.message) {
+            toast.error(createLectureError.data.message);
         }
-    }, [isCreateLectureSuccess, createLectureError])
+    }, [isCreateLectureSuccess, isCreateLectureError, createLectureError, createLectureData]);
 
     return (
         <div className="container mx-auto">
@@ -37,7 +48,7 @@ export default function CreateLecture() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className=" mx-auto"
+                className="mx-auto"
             >
                 <Button
                     variant="ghost"
@@ -49,11 +60,6 @@ export default function CreateLecture() {
                 </Button>
 
                 <h1 className="text-3xl font-bold text-white mb-6">Add New Lecture</h1>
-
-                <p className="text-gray-300 mb-8">
-                    Create a new course by filling out the information below. Provide a compelling title
-                    and select the most appropriate category to help students find your course easily.
-                </p>
 
                 <div className="space-y-6">
                     <div className="space-y-2">
@@ -82,12 +88,13 @@ export default function CreateLecture() {
                                     Please wait
                                 </>
                             ) : (
-                                "Create lecture"
+                                'Create lecture'
                             )}
                         </Button>
                     </div>
                 </div>
             </motion.div>
         </div>
-    )
+    );
 }
+

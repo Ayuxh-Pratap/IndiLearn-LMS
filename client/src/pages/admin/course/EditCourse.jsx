@@ -16,7 +16,7 @@ import { useEditCourseMutation, useGetCourseByIdQuery } from '@/features/api/cou
 import { useParams } from 'react-router-dom'
 
 const categories = ["Web Development", "Data Science", "Mobile Development", "Machine Learning", "DevOps", "Design", "Business"]
-const levels = ["Beginner", "Intermediate", "Advanced", "All Levels"]
+const levels = ["Beginner", "Medium", "Advanced"]
 
 
 
