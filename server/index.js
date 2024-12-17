@@ -2,6 +2,7 @@ import express from "express"
 import dotenv from "dotenv"
 import userRouter from "./routes/user.route.js"
 import courseRouter from "./routes/course.route.js"
+import mediaRoute from "./routes/media.route.js"
 import connectDB from "./database/db.js"
 import cors from "cors"
 import cookieParser from "cookie-parser"
@@ -21,6 +22,7 @@ app.use(cors({
 }))
 app.use(cookieParser())
 
+app.use("/api/v1/media", mediaRoute)
 app.use("/api/v1/user", userRouter)
 app.use("/api/v1/course", courseRouter)
 
