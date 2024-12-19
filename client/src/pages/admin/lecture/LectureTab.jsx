@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Trash2, Upload, Save } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -12,12 +12,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import axios from "axios"
 import { toast } from "sonner"
 import { Progress } from "@/components/ui/progress"
+import { useEditLectureMutation } from "@/features/api/courseApi"
+import { use } from "react"
+import { useParams } from "react-router-dom"
 
 const MEDIA_API = "http://localhost:8080/api/v1/media"
 
 export default function LectureCard() {
 
-  const [title, setTitle] = useState("")
+  const [lectureTitle, setLectureTitle] = useState("")
   const [uploadVideoInfo, setUploadVideoInfo] = useState(null)
   const [isFree, setIsFree] = useState(false)
   const [mediaProgress, setMediaProgress] = useState(false)
@@ -26,7 +29,10 @@ export default function LectureCard() {
   const [isHovering, setIsHovering] = useState(false)
   const [fileName, setFileName] = useState("")
 
+  const params = useParams()
+  const { courseId, lectureId } = params
 
+  const [editLecture, { isLoading, isSuccess, error, data }] = useEditLectureMutation()
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -66,6 +72,19 @@ export default function LectureCard() {
     }
   }
 
+  const editLectureHandler = async () => {
+    await editLecture({ courseId, lectureId, lectureTitle, videoInfo: uploadVideoInfo, isPreviewFree: isFree })
+  }
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success("Lecture updated successfully")
+    }
+    if (error) {
+      toast.error(error.data.message || "An error occurred")
+    }
+  }, [isSuccess , error])
+
   return (
     <TooltipProvider>
       <Card className="w-full bg-gray-900 text-white shadow-xl border border-gray-800">
@@ -96,7 +115,7 @@ export default function LectureCard() {
           </motion.div>
         </CardHeader>
         <CardContent>
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
             <motion.div
               className="space-y-2"
               initial={{ opacity: 0, x: -20 }}
@@ -107,6 +126,9 @@ export default function LectureCard() {
               <Input
                 id="title"
                 name="title"
+                type="text"
+                value={lectureTitle}
+                onChange={(e) => setLectureTitle(e.target.value)}
                 placeholder="Enter lecture title"
                 className="w-full bg-gray-800 border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500"
               />
@@ -131,7 +153,6 @@ export default function LectureCard() {
                   accept="video/*"
                   className="w-full z-40 cursor-pointer opacity-0 absolute inset-0"
                   onChange={fileChangeHandler}
-                  required
                 />
                 <div className={`flex z-0 cursor-not-allowed items-center justify-center h-32 w-full border-2 border-dashed rounded-lg transition-colors duration-300 ${isHovering ? 'border-blue-500 bg-blue-500 bg-opacity-10' : 'border-gray-600 bg-gray-800'}`}>
                   <div className="space-y-1 text-center">
@@ -174,7 +195,7 @@ export default function LectureCard() {
               transition={{ duration: 0.3, delay: 0.4 }}
             >
               <Button
-                type="submit"
+                onClick={editLectureHandler}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-300"
               >
                 <Save className="mr-2 h-4 w-4" />
