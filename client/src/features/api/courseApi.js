@@ -70,7 +70,14 @@ export const courseApi = createApi({
             }),
             invalidatesTags: ['Refetch_Creator_Course']
         }),
+        getLectureById: builder.query({
+            query: ({ courseId, lectureId }) => ({
+                url: `/${courseId}/lecture/${lectureId}`,
+                method: "GET",
+            }),
+            providesTags: ['Refetch_Creator_Course']
+        })
     }),
 })
 
-export const { useCreateCourseMutation, useGetCreatorCoursesQuery, useEditCourseMutation , useGetCourseByIdQuery , useCreateLectureMutation , useGetCourseLectureQuery , useEditLectureMutation , useRemoveLectureMutation } = courseApi
+export const { useCreateCourseMutation, useGetCreatorCoursesQuery, useEditCourseMutation , useGetCourseByIdQuery , useCreateLectureMutation , useGetCourseLectureQuery , useEditLectureMutation , useRemoveLectureMutation , useGetLectureByIdQuery } = courseApi

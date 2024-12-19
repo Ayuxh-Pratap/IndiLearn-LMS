@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import axios from "axios"
 import { toast } from "sonner"
 import { Progress } from "@/components/ui/progress"
-import { useEditLectureMutation , useRemoveLectureMutation } from "@/features/api/courseApi"
+import { useEditLectureMutation , useRemoveLectureMutation , useGetLectureByIdQuery } from "@/features/api/courseApi"
 import { use } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 
@@ -36,6 +36,18 @@ export default function LectureCard() {
 
   const [editLecture, { isLoading, isSuccess, error, data }] = useEditLectureMutation()
   const [removeLecture, { isLoading: isRemoveLoading, isSuccess: isRemoveSuccess, error: removeError }] = useRemoveLectureMutation()
+  const { data: lectureData, isLoading: lectureLoading, isSuccess: lectureSuccess, error: lectureError } = useGetLectureByIdQuery({ courseId, lectureId })
+
+  const lecture = lectureData?.lecture
+  // console.log(lecture)
+
+  useEffect(() => {
+    if (lecture) {
+      setLectureTitle(lecture.lectureTitle)
+      setUploadVideoInfo(lecture.videoInfo)
+      setIsFree(lecture.isPreviewFree)
+    }
+  }, [lecture])
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -45,10 +57,10 @@ export default function LectureCard() {
 
   const fileChangeHandler = async (e) => {
     const file = e.target.files[0]
-    setFileName(file.name)
     if (file) {
       const formData = new FormData()
       formData.append("file", file)
+      setFileName(file.name)
       setMediaProgress(true)
       try {
         const res = await axios.post(`${MEDIA_API}/upload-Video`, formData, {
@@ -57,8 +69,6 @@ export default function LectureCard() {
             setUploadProgress(progress)
           }
         })
-
-        console.log(res.data)
 
         if (res.data.success) {
           setUploadVideoInfo({ videoUrl: res.data.data.url, publicId: res.data.data.public_id })
@@ -101,6 +111,8 @@ export default function LectureCard() {
       toast.error(removeError.data.message || "An error occurred")
     }
   }, [isRemoveSuccess, removeError])
+
+  console.log(lecture)
 
   return (
     <TooltipProvider>

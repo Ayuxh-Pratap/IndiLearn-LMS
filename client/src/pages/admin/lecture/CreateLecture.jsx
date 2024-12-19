@@ -52,8 +52,6 @@ export default function CreateLecture() {
         }
     }, [isCreateLectureSuccess, isCreateLectureError, createLectureError, createLectureData]);
 
-    console.log(getCourseLectureData);
-
     return (
         <div className="container mx-auto">
             <motion.div

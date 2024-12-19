@@ -139,9 +139,9 @@ export const editLecture = async (req, res) => {
             return res.status(400).json({ message: "Please fill all the fields" });
         }
 
-        if (!videoInfo?.videoUrl || !videoInfo?.publicId) {
-            return res.status(400).json({ message: "Please upload video" });
-        }
+        // if (!videoInfo?.videoUrl || !videoInfo?.publicId) {
+        //     return res.status(400).json({ message: "Please upload video" });
+        // }
 
         const lecture = await Lecture.findById(lectureId);
         if (!lecture) {
