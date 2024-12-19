@@ -171,7 +171,7 @@ export default function EditCourse() {
 
                 <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center space-x-2">
-                        <Button variat="ghost" onClick={() => publishStatusHandler(courseIdData?.course?.isPublished ? false : true)} className="mb-6 text-gray-400">
+                        <Button disabled={courseIdData?.course.lectures.length === 0} variat="ghost" onClick={() => publishStatusHandler(courseIdData?.course?.isPublished ? false : true)} className="mb-6 text-gray-400">
                             {isPublished ? "Published" : "Draft"}
                         </Button>
                     </div>
