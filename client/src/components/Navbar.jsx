@@ -78,6 +78,7 @@ const Navbar = () => {
                                     <DropdownMenuGroup>
                                         <a href="/profile"><DropdownMenuItem>Profile</DropdownMenuItem></a>
                                         <a href="/My-Learning"><DropdownMenuItem>My Learnings</DropdownMenuItem></a>
+                                        <a href="/admin/course"><DropdownMenuItem>Admin Panel</DropdownMenuItem></a>
                                         <DropdownMenuItem>Go Premium</DropdownMenuItem>
                                     </DropdownMenuGroup>
                                     {user.role === "instructor" && (

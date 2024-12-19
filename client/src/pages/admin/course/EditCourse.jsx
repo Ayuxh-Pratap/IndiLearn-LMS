@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Upload, Trash2, Loader2, Loader, Save } from 'lucide-react'
+import { ArrowLeft, Upload, Trash2, Loader2, Loader, Save, ArrowRight } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,8 +12,8 @@ import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import RichTextEditor from '@/components/RichTextEditor'
-import { useEditCourseMutation, useGetCourseByIdQuery } from '@/features/api/courseApi'
-import { useParams } from 'react-router-dom'
+import { useEditCourseMutation, useGetCourseByIdQuery , usePublishCourseMutation } from '@/features/api/courseApi'
+import { useNavigate, useParams } from 'react-router-dom'
 
 const categories = ["Web Development", "Data Science", "Mobile Development", "Machine Learning", "DevOps", "Design", "Business"]
 const levels = ["Beginner", "Medium", "Advanced"]
@@ -33,8 +33,12 @@ export default function EditCourse() {
 
     const params = useParams()
     const courseId = params.courseId
+    const navigate = useNavigate()
 
-    const { data: courseIdData, isLoading: courseIdIsLoading, isSuccess: courseIdIsSuccess, error: courseIdError } = useGetCourseByIdQuery(courseId , {refetchOnMountOrArgChange: true})
+    const { data: courseIdData, isLoading: courseIdIsLoading, isSuccess: courseIdIsSuccess, error: courseIdError } = useGetCourseByIdQuery(courseId, { refetchOnMountOrArgChange: true })
+    const [publishCourse, { data: publishCourseData, isLoading: publishCourseIsLoading, isSuccess: publishCourseIsSuccess, error: publishCourseError }] = usePublishCourseMutation()
+    
+    const isPublished = courseIdData?.course?.isPublished
 
     useEffect(() => {
         if (courseIdData?.course) {
@@ -54,8 +58,6 @@ export default function EditCourse() {
     const [editCourse, { data, isLoading, isSuccess, error }] = useEditCourseMutation()
 
     console.log(data)
-
-    const isPublished = true
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [previewThumbnail, setPreviewThumbnail] = useState('')
 
@@ -109,6 +111,24 @@ export default function EditCourse() {
         }
     };
 
+    const publishStatusHandler = async (action) => {
+        if (!courseId) {
+            toast.error("Invalid Course ID.");
+            return;
+        }
+
+        try {
+            const response = await publishCourse({ courseId, query:action });
+            if (response.data) {
+                toast.success(response.data.message);
+            } else {
+                toast.error("Failed to update course.");
+            }
+        } catch (error) {
+            console.error("Error updating course:", error);
+        }
+    }
+
 
     useEffect(() => {
         if (isSuccess) {
@@ -129,25 +149,31 @@ export default function EditCourse() {
                 transition={{ duration: 0.5 }}
                 className="mx-auto"
             >
-                <Button
-                    variant="ghost"
-                    className="mb-6 text-gray-400"
-                    onClick={() => window.history.back()}
-                >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Courses
-                </Button>
+                <div className='flex justify-between items-center mb-6'>
+                    <Button
+                        variant="ghost"
+                        className="mb-6 text-gray-400"
+                        onClick={() => window.history.back()}
+                    >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to Courses
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        onClick={() => navigate(lecture)}
+                        className="mb-6 text-gray-400">
+                        Manage Lectures
+                        <ArrowRight className="mr-2 h-4 w-4" />
+                    </Button>
+                </div>
 
                 <h1 className="text-3xl font-bold text-white mb-6">Edit Course</h1>
 
                 <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center space-x-2">
-                        <Switch
-                            id="published"
-                        />
-                        <Label htmlFor="published" className="text-white">
-                            {isPublished ? 'Published' : 'Draft'}
-                        </Label>
+                        <Button variat="ghost" onClick={() => publishStatusHandler(courseIdData?.course?.isPublished ? false : true)} className="mb-6 text-gray-400">
+                            {isPublished ? "Published" : "Draft"}
+                        </Button>
                     </div>
                     <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                         <DialogTrigger asChild>
