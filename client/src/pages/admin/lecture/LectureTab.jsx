@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Trash2, Upload, Save } from 'lucide-react'
+import { Trash2, Upload, Save, Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,9 +12,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import axios from "axios"
 import { toast } from "sonner"
 import { Progress } from "@/components/ui/progress"
-import { useEditLectureMutation } from "@/features/api/courseApi"
+import { useEditLectureMutation , useRemoveLectureMutation } from "@/features/api/courseApi"
 import { use } from "react"
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 
 const MEDIA_API = "http://localhost:8080/api/v1/media"
 
@@ -32,7 +32,10 @@ export default function LectureCard() {
   const params = useParams()
   const { courseId, lectureId } = params
 
+  const navigate = useNavigate()
+
   const [editLecture, { isLoading, isSuccess, error, data }] = useEditLectureMutation()
+  const [removeLecture, { isLoading: isRemoveLoading, isSuccess: isRemoveSuccess, error: removeError }] = useRemoveLectureMutation()
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -76,6 +79,10 @@ export default function LectureCard() {
     await editLecture({ courseId, lectureId, lectureTitle, videoInfo: uploadVideoInfo, isPreviewFree: isFree })
   }
 
+  const removeLectureHandler = async () => {
+    await removeLecture({ courseId, lectureId })
+  }
+
   useEffect(() => {
     if (isSuccess) {
       toast.success("Lecture updated successfully")
@@ -84,6 +91,16 @@ export default function LectureCard() {
       toast.error(error.data.message || "An error occurred")
     }
   }, [isSuccess , error])
+
+  useEffect(() => {
+    if (isRemoveSuccess) {
+      toast.success("Lecture removed successfully")
+      navigate(`/admin/course/${courseId}/lecture`)
+    }
+    if (removeError) {
+      toast.error(removeError.data.message || "An error occurred")
+    }
+  }, [isRemoveSuccess, removeError])
 
   return (
     <TooltipProvider>
@@ -103,9 +120,25 @@ export default function LectureCard() {
               <TooltipTrigger asChild>
                 <Button
                   variant="destructive"
+                  disabled={isRemoveLoading}
+                  onClick={removeLectureHandler}
                   className="bg-red-600 hover:bg-red-700 text-white"
                 >
-                  <Trash2 className="h-4 w-4" /> Remove Course
+                  
+                  {
+                    isRemoveLoading ? (
+                      <span className="flex items-center gap-2">
+                        <span className="animate-spin">
+                          <Loader2 className="w-4 h-4" />
+                        </span>
+                        <span>Removing...</span>
+                      </span>
+                    ) : (
+                        <span className="flex items-center gap-2">
+                          <Trash2 className="w-4 h-4" /> <p>Remove Lecture</p>
+                        </span>
+                    )
+                  }
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -198,8 +231,21 @@ export default function LectureCard() {
                 onClick={editLectureHandler}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-300"
               >
-                <Save className="mr-2 h-4 w-4" />
-                Update Lecture
+                {
+                  isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="animate-spin">
+                        <Loader2 className="w-4 h-4" />
+                      </span>
+                      <span>Updating...</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Save className="mr-2 h-4 w-4" />
+                      <p>Update Lecture</p>
+                    </span>
+                  )
+                }
               </Button>
             </motion.div>
           </form>

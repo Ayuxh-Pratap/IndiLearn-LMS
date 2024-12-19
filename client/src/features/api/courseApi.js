@@ -62,8 +62,15 @@ export const courseApi = createApi({
                 body: { lectureTitle, videoInfo, isPreviewFree }
             }),
             invalidatesTags: ['Refetch_Creator_Course']
-        })
+        }),
+        removeLecture: builder.mutation({
+            query: ({ courseId, lectureId }) => ({
+                url: `/${courseId}/lecture/${lectureId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ['Refetch_Creator_Course']
+        }),
     }),
 })
 
-export const { useCreateCourseMutation, useGetCreatorCoursesQuery, useEditCourseMutation , useGetCourseByIdQuery , useCreateLectureMutation , useGetCourseLectureQuery , useEditLectureMutation } = courseApi
+export const { useCreateCourseMutation, useGetCreatorCoursesQuery, useEditCourseMutation , useGetCourseByIdQuery , useCreateLectureMutation , useGetCourseLectureQuery , useEditLectureMutation , useRemoveLectureMutation } = courseApi
