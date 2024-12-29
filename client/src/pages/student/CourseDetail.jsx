@@ -49,6 +49,7 @@ const CourseDetail = () => {
     return (
         <div className="min-h-screen text-white py-24">
             <div className="container mx-auto px-4 py-8">
+                
                 <motion.div {...fadeIn} className="mb-8">
                     <Button variant="ghost" className="mb-12 text-gray-400 hover:text-white">
                         <ChevronLeft className="mr-2 h-4 w-4" /> Back to Courses
